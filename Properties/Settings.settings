@@ -1,0 +1,21 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="WarBender.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MainForm_Location" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="MainForm_SplitterDistance" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">295</Value>
+    </Setting>
+    <Setting Name="MainForm_Size" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">734, 511</Value>
+    </Setting>
+    <Setting Name="ConsoleForm_Location" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="ConsoleForm_ClientSize" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">499, 274</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
