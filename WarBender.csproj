@@ -121,6 +121,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="README.md" />
     <None Include="WarbendService.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -136,28 +137,22 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  
-  <UsingTask
-     TaskName="Unzip"
-     TaskFactory="CodeTaskFactory"
-     AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+  <UsingTask TaskName="Unzip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <ZipFileName Required="true" />
       <DestinationPath Required="true" />
     </ParameterGroup>
     <Task>
-      <Reference Include="System.IO.Compression.FileSystem"/>
+      <Reference Include="System.IO.Compression.FileSystem" />
       <Code Type="Fragment" Language="cs">
         System.IO.Compression.ZipFile.ExtractToDirectory(ZipFileName, DestinationPath);
       </Code>
     </Task>
   </UsingTask>
-
   <ItemGroup>
-    <PyPyZip Include="pypy2-*.zip"/>
-    <UnzippedPyPy Include="$(OutputPath)\pypy2-*\**"/>
+    <PyPyZip Include="pypy2-*.zip" />
+    <UnzippedPyPy Include="$(OutputPath)\pypy2-*\**" />
   </ItemGroup>
-
   <Target Name="UnzipPyPy" AfterTargets="Build" Condition="'' == '@(UnzippedPyPy)'">
     <Message Text="Unpacking @(PyPyZip) to $(OutputPath)" Importance="high" />
     <Unzip ZipFileName="@(PyPyZip)" DestinationPath="$(OutputPath)" />
