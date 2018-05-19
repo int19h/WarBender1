@@ -111,6 +111,7 @@
       <DependentUpon>PropertyGridForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
+    <None Include="LICENSE" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -135,6 +136,9 @@
     <Content Include="requirements/**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="modsys/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <UsingTask TaskName="Unzip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -153,6 +157,7 @@
     <PyPyZip Include="pypy2-*.zip" />
     <UnzippedPyPy Include="$(OutputPath)\pypy2-*\**" />
   </ItemGroup>
+  <ItemGroup />
   <Target Name="UnzipPyPy" AfterTargets="Build" Condition="'' == '@(UnzippedPyPy)'">
     <Message Text="Unpacking @(PyPyZip) to $(OutputPath)" Importance="high" />
     <Unzip ZipFileName="@(PyPyZip)" DestinationPath="$(OutputPath)" />

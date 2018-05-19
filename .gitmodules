@@ -1,3 +1,6 @@
 [submodule "warbend"]
 	path = warbend
 	url = https://github.com/int19h/warbend
+[submodule "modsys/native"]
+	path = modsys/native
+	url = https://github.com/int19h/mb_warband_module_system

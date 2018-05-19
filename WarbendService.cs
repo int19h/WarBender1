@@ -48,7 +48,7 @@ namespace WarBender {
         IEnumerable<string> GetPythonPath() {
             yield return Path.Combine(BasePath, "warbend");
             yield return Path.Combine(BasePath, "requirements");
-            yield return @"C:\git\warbend\modules\Native\Module_system 1.171";
+            yield return Path.Combine(BasePath, "modsys", "native", "Module_system 1.171");
         }
 
         void Start() {
