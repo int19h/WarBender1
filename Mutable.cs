@@ -1,13 +1,10 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Drawing.Design;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 
 namespace WarBender {
@@ -271,23 +268,29 @@ namespace WarBender {
         public override void ResetValue(object component) =>
             throw new NotImplementedException();
 
+        private void EnsureOwner(object component) {
+            if (!(component is Mutable mut) || mut.Path != owner.Path) {
+                throw new ArgumentException("component is not owner", "component");
+            }
+        }
+
         public override object GetValue(object component) {
-            Debug.Assert(component == owner);
+            EnsureOwner(component);
             return Value;
         }
 
         public override void SetValue(object component, object value) {
-            Debug.Assert(component == owner);
+            EnsureOwner(component);
             owner[selector] = value;
         }
 
         public override void AddValueChanged(object component, EventHandler handler) {
-            Debug.Assert(component == owner);
+            EnsureOwner(component);
             owner.Invalid += handler;
         }
 
         public override void RemoveValueChanged(object component, EventHandler handler) {
-            Debug.Assert(component == owner);
+            EnsureOwner(component);
             owner.Invalid -= handler;
         }
     }
