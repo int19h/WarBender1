@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Drawing.Design;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 
@@ -22,6 +20,8 @@ namespace WarBender {
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) =>
             sourceType == typeof(string);
 
+        protected virtual object Parse(string s) => s;
+
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
             if (!(value is string s)) {
                 throw new ArgumentException("", "value");
@@ -32,22 +32,24 @@ namespace WarBender {
                 s = s.Substring(0, i);
             }
 
-            return Convert.ChangeType(s, BaseType, CultureInfo.InvariantCulture);
+            return Convert.ChangeType(Parse(s), BaseType, CultureInfo.InvariantCulture);
         }
 
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
             destinationType == typeof(string);
 
-        public virtual IEnumerable<string> GetNames(object value) =>
+        protected virtual IEnumerable<string> GetNames(object value) =>
             Names.Where(kv => Equals(kv.Value, value)).Select(kv => kv.Key);
 
+        protected virtual string Stringify(object value) => value.ToString();
+
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
-            var fmt = "{0}";
+            var s = Stringify(value);
             var names = GetNames(value).ToArray();
             if (names.Length != 0) {
-                fmt += " ({1})";
+                s += $" ({string.Join(", ", names)})";
             }
-            return string.Format(CultureInfo.InvariantCulture, fmt, value, string.Join(", ", names));
+            return s;
         }
 
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) => true;
@@ -63,7 +65,24 @@ namespace WarBender {
             : base(baseType, names) {
         }
 
-        public override IEnumerable<string> GetNames(dynamic value) {
+        protected override string Stringify(object value) {
+            int maxLen = 0;
+            foreach (var kv in Names) {
+                var s = string.Format("{0:X}", kv.Value);
+                if (s.Length > maxLen) {
+                    maxLen = s.Length;
+                }
+            }
+
+            var result = string.Format("{0:X}", value);
+            result = "0x" + result.PadLeft(maxLen, '0');
+            return result;
+        }
+
+        protected override object Parse(string s) =>
+            s.StartsWith("0x") ? ulong.Parse(s.Substring(2), NumberStyles.HexNumber) : base.Parse(s);
+
+        protected override IEnumerable<string> GetNames(dynamic value) {
             var flags = new List<string>();
             dynamic x = value & 0;
             foreach (var kv in Names) {

@@ -54,14 +54,16 @@
             // 
             // statusStrip
             // 
+            this.statusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.buttonMulti,
             this.statusLabel,
             this.progressBar});
-            this.statusStrip.Location = new System.Drawing.Point(0, 489);
+            this.statusStrip.Location = new System.Drawing.Point(0, 603);
             this.statusStrip.Name = "statusStrip";
+            this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 19, 0);
             this.statusStrip.ShowItemToolTips = true;
-            this.statusStrip.Size = new System.Drawing.Size(734, 22);
+            this.statusStrip.Size = new System.Drawing.Size(979, 26);
             this.statusStrip.TabIndex = 0;
             this.statusStrip.ClientSizeChanged += new System.EventHandler(this.statusStrip_ClientSizeChanged);
             // 
@@ -72,7 +74,7 @@
             this.buttonMulti.Image = ((System.Drawing.Image)(resources.GetObject("buttonMulti.Image")));
             this.buttonMulti.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.buttonMulti.Name = "buttonMulti";
-            this.buttonMulti.Size = new System.Drawing.Size(23, 20);
+            this.buttonMulti.Size = new System.Drawing.Size(24, 24);
             this.buttonMulti.Text = "Enable multiple selection";
             this.buttonMulti.CheckedChanged += new System.EventHandler(this.buttonMulti_CheckedChanged);
             // 
@@ -81,7 +83,7 @@
             this.statusLabel.Margin = new System.Windows.Forms.Padding(2, 3, 5, 2);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
-            this.statusLabel.Size = new System.Drawing.Size(39, 17);
+            this.statusLabel.Size = new System.Drawing.Size(49, 21);
             this.statusLabel.Text = "Status";
             this.statusLabel.Visible = false;
             this.statusLabel.TextChanged += new System.EventHandler(this.statusLabel_TextChanged);
@@ -92,12 +94,13 @@
             this.progressBar.Margin = new System.Windows.Forms.Padding(1, 3, 6, 3);
             this.progressBar.Name = "progressBar";
             this.progressBar.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
-            this.progressBar.Size = new System.Drawing.Size(300, 16);
+            this.progressBar.Size = new System.Drawing.Size(400, 20);
             this.progressBar.Visible = false;
             // 
             // toolStrip
             // 
             this.toolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.toolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.buttonLoad,
             this.buttonSave,
@@ -105,7 +108,7 @@
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
             this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.toolStrip.Size = new System.Drawing.Size(734, 25);
+            this.toolStrip.Size = new System.Drawing.Size(979, 27);
             this.toolStrip.TabIndex = 1;
             // 
             // buttonLoad
@@ -116,7 +119,7 @@
             this.buttonLoad.Image = ((System.Drawing.Image)(resources.GetObject("buttonLoad.Image")));
             this.buttonLoad.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.buttonLoad.Name = "buttonLoad";
-            this.buttonLoad.Size = new System.Drawing.Size(65, 22);
+            this.buttonLoad.Size = new System.Drawing.Size(81, 24);
             this.buttonLoad.Text = "Load";
             // 
             // buttonLoadBinary
@@ -124,7 +127,7 @@
             this.buttonLoadBinary.Image = ((System.Drawing.Image)(resources.GetObject("buttonLoadBinary.Image")));
             this.buttonLoadBinary.Name = "buttonLoadBinary";
             this.buttonLoadBinary.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.buttonLoadBinary.Size = new System.Drawing.Size(159, 22);
+            this.buttonLoadBinary.Size = new System.Drawing.Size(187, 26);
             this.buttonLoadBinary.Text = "&Binary...";
             this.buttonLoadBinary.Click += new System.EventHandler(this.buttonLoadBinary_Click);
             // 
@@ -132,7 +135,7 @@
             // 
             this.buttonLoadXml.Image = ((System.Drawing.Image)(resources.GetObject("buttonLoadXml.Image")));
             this.buttonLoadXml.Name = "buttonLoadXml";
-            this.buttonLoadXml.Size = new System.Drawing.Size(159, 22);
+            this.buttonLoadXml.Size = new System.Drawing.Size(187, 26);
             this.buttonLoadXml.Text = "&XML...";
             this.buttonLoadXml.Click += new System.EventHandler(this.buttonLoadXml_Click);
             // 
@@ -144,7 +147,7 @@
             this.buttonSave.Image = ((System.Drawing.Image)(resources.GetObject("buttonSave.Image")));
             this.buttonSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.buttonSave.Name = "buttonSave";
-            this.buttonSave.Size = new System.Drawing.Size(63, 22);
+            this.buttonSave.Size = new System.Drawing.Size(79, 24);
             this.buttonSave.Text = "Save";
             // 
             // buttonSaveBinary
@@ -152,7 +155,7 @@
             this.buttonSaveBinary.Image = ((System.Drawing.Image)(resources.GetObject("buttonSaveBinary.Image")));
             this.buttonSaveBinary.Name = "buttonSaveBinary";
             this.buttonSaveBinary.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.buttonSaveBinary.Size = new System.Drawing.Size(156, 22);
+            this.buttonSaveBinary.Size = new System.Drawing.Size(184, 26);
             this.buttonSaveBinary.Text = "&Binary...";
             this.buttonSaveBinary.Click += new System.EventHandler(this.buttonSaveBinary_Click);
             // 
@@ -160,7 +163,7 @@
             // 
             this.buttonSaveXml.Image = ((System.Drawing.Image)(resources.GetObject("buttonSaveXml.Image")));
             this.buttonSaveXml.Name = "buttonSaveXml";
-            this.buttonSaveXml.Size = new System.Drawing.Size(156, 22);
+            this.buttonSaveXml.Size = new System.Drawing.Size(184, 26);
             this.buttonSaveXml.Text = "&XML...";
             this.buttonSaveXml.Click += new System.EventHandler(this.buttonSaveXml_Click);
             // 
@@ -172,7 +175,7 @@
             this.buttonConsole.Image = ((System.Drawing.Image)(resources.GetObject("buttonConsole.Image")));
             this.buttonConsole.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.buttonConsole.Name = "buttonConsole";
-            this.buttonConsole.Size = new System.Drawing.Size(23, 22);
+            this.buttonConsole.Size = new System.Drawing.Size(24, 24);
             this.buttonConsole.Text = "Show debug console";
             this.buttonConsole.CheckedChanged += new System.EventHandler(this.buttonConsole_CheckedChanged);
             // 
@@ -180,7 +183,8 @@
             // 
             this.splitContainer.DataBindings.Add(new System.Windows.Forms.Binding("SplitterDistance", global::WarBender.Properties.Settings.Default, "MainForm_SplitterDistance", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer.Location = new System.Drawing.Point(0, 25);
+            this.splitContainer.Location = new System.Drawing.Point(0, 27);
+            this.splitContainer.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
@@ -192,8 +196,9 @@
             // 
             this.splitContainer.Panel2.Controls.Add(this.propertyGrid);
             this.splitContainer.Panel2MinSize = 150;
-            this.splitContainer.Size = new System.Drawing.Size(734, 464);
+            this.splitContainer.Size = new System.Drawing.Size(979, 576);
             this.splitContainer.SplitterDistance = global::WarBender.Properties.Settings.Default.MainForm_SplitterDistance;
+            this.splitContainer.SplitterWidth = 5;
             this.splitContainer.TabIndex = 2;
             // 
             // treeView
@@ -205,11 +210,12 @@
             this.treeView.ImageIndex = 0;
             this.treeView.ImageList = this.imageList;
             this.treeView.Location = new System.Drawing.Point(0, 0);
+            this.treeView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.treeView.Name = "treeView";
             this.treeView.SelectedImageIndex = 0;
             this.treeView.ShowNodeToolTips = true;
             this.treeView.ShowRootLines = false;
-            this.treeView.Size = new System.Drawing.Size(295, 464);
+            this.treeView.Size = new System.Drawing.Size(393, 576);
             this.treeView.TabIndex = 0;
             this.treeView.BeforeCheck += new System.Windows.Forms.TreeViewCancelEventHandler(this.treeView_BeforeCheck);
             this.treeView.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.treeView_AfterCheck);
@@ -248,10 +254,11 @@
             this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid.Location = new System.Drawing.Point(0, 0);
             this.propertyGrid.MainForm = null;
+            this.propertyGrid.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
             this.propertyGrid.MultiSelect = false;
             this.propertyGrid.Name = "propertyGrid";
             this.propertyGrid.ShowMultiSelectTip = true;
-            this.propertyGrid.Size = new System.Drawing.Size(435, 464);
+            this.propertyGrid.Size = new System.Drawing.Size(581, 576);
             this.propertyGrid.TabIndex = 0;
             // 
             // openFileDialog
@@ -266,7 +273,7 @@
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = global::WarBender.Properties.Settings.Default.MainForm_Size;
             this.Controls.Add(this.splitContainer);
@@ -276,7 +283,8 @@
             this.DataBindings.Add(new System.Windows.Forms.Binding("ClientSize", global::WarBender.Properties.Settings.Default, "MainForm_Size", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Location = global::WarBender.Properties.Settings.Default.MainForm_Location;
-            this.MinimumSize = new System.Drawing.Size(400, 300);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.MinimumSize = new System.Drawing.Size(527, 358);
             this.Name = "MainForm";
             this.Text = "WarBender";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
