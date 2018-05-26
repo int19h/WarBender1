@@ -7,7 +7,7 @@ import traceback
 from warbend import mode
 mode.is_quiet = True
 
-from warbend.data import path, selector, transaction
+from warbend.data import path as path_of, selector, transaction
 from warbend.data.array import is_array
 from warbend.data.enum import Enum, Flags
 from warbend.data.id_ref import IdRef
@@ -84,38 +84,32 @@ class RequestHandler(object):
             traceback.print_exc(file=stderr)
             return {'error': str(ex)}
 
-    def fetch(self, selectors):
-        obj = self._game
-        for sel in selectors:
-            try:
-                obj = obj[sel]
-            except Exception:
-                traceback.print_exc(file=stderr)
-                return None
+    @staticmethod
+    def _propvalue(value):
+        t = type(value)
+        if is_mutable(value):
+            r = {
+                'path': path_of(value),
+                'totalCount': len(value),
+                'mutableCount': sum(is_mutable(child) for child in value),
+            }
+        else:
+            r = {'value': str(value)}
+            if isinstance(value, Enum):
+                r['baseType'] = t.base_type.__name__
+                is_flags = isinstance(value, Flags)
+                names = {v: str(k) for k, v in t.names.iteritems()}
+                r['flags' if is_flags else 'enum'] = names
+            elif isinstance(value, IdRef):
+                r['baseType'] = t.base_type.__name__
+                r['refPath'] = path_of(value.target)
+        r['type'] = t.__name__
+        return r
 
-        def propvalue(value):
-            t = type(value)
-            if is_mutable(value):
-                r = {
-                    'selector': selector(value),
-                    'path': path(value),
-                    'totalCount': len(value),
-                    'mutableCount': sum(is_mutable(child) for child in value),
-                }
-            else:
-                r = {'value': str(value)}
-                if isinstance(value, Enum):
-                    r['baseType'] = t.base_type.__name__
-                    is_flags = isinstance(value, Flags)
-                    names = {v: str(k) for k, v in t.names.iteritems()}
-                    r['flags' if is_flags else 'enum'] = names
-                elif isinstance(value, IdRef):
-                    r['baseType'] = t.base_type.__name__
-                    r['refPath'] = path(value.target)
-            r['type'] = t.__name__
-            return r
-
+    def fetch(self, path):
+        obj = self._walk(path)
         t = type(obj)
+        propvalue = self._propvalue
         if is_record(obj):
             return [{fname: propvalue(fvalue)}
                     for fname, fvalue in obj._fields.iteritems()
@@ -130,26 +124,18 @@ class RequestHandler(object):
         else:
             return obj
 
-    def update(self, selectors, value):
-        if not selectors:
-            raise ValueError()
-        obj = self._game
-        for sel in selectors[:-1]:
-            try:
-                obj = obj[sel]
-            except Exception:
-                traceback.print_exc(file=stderr)
-                return {}
+    def update(self, path, selector, value):
+        obj = self._walk(path)
         with transaction(obj) as tr:
             try:
-                obj[selectors[-1]] = value
+                obj[selector] = value
                 affected = tr.commit()
             except Exception as ex:
                 traceback.print_exc(file=stderr)
                 tr.rollback()
                 return {'error': str(ex)}
             else:
-                return [path(obj) for obj in affected]
+                return [path_of(obj) for obj in affected]
 
     def getArrayInfo(self, path):
         array = self._walk(path)

@@ -43,6 +43,10 @@ namespace WarBender {
             destinationType == typeof(string);
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
+            if (value == null) {
+                return "";
+            }
+
             var index = ((IConvertible)value).ToInt32(culture);
             var resp = warbend.GetArrayInfoAsync(Path).GetAwaiter().GetResult();
             var keys = resp.Value<JObject>("keys");

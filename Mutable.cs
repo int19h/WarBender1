@@ -31,8 +31,6 @@ namespace WarBender {
 
         public string Path { get; }
 
-        public object Selector { get; }
-
         Lazy<Child[]> childrenLazy;
 
         // Values are indices into the above array.
@@ -46,10 +44,9 @@ namespace WarBender {
 
         public bool IsRecord => !IsArray;
 
-        private Mutable(WarbendService warbend, Mutable parent, object selector, string path, string typeName, int mutableCount) {
+        private Mutable(WarbendService warbend, Mutable parent, string path, string typeName, int mutableCount) {
             this.warbend = warbend;
             Parent = parent;
-            Selector = selector;
             Path = path;
             TypeName = typeName;
             IsArray = typeName?.Contains("array(") == true;
@@ -60,7 +57,7 @@ namespace WarBender {
         }
 
         public Mutable(WarbendService warbend, string typeName, int mutableCount = 1)
-            : this(warbend, null, null, "game", typeName, mutableCount) {
+            : this(warbend, null, "game", typeName, mutableCount) {
         }
 
         public event EventHandler Invalid;
@@ -70,20 +67,6 @@ namespace WarBender {
         public static Mutable At(string path) {
             mutables.TryGetValue(path, out var weakRef);
             return weakRef?.Target as Mutable;
-        }
-
-        IEnumerable<object> ComputeSelectors() {
-            if (Parent == null) {
-                yield break;
-            }
-
-            foreach (var selector in Parent.ComputeSelectors()) {
-                yield return selector;
-            }
-
-            if (Selector != null) {
-                yield return Selector;
-            }
         }
 
         readonly Dictionary<string, Type> types = new Dictionary<string, Type>() {
@@ -103,8 +86,7 @@ namespace WarBender {
 
         IEnumerable<Child> FetchChildren() {
             var isRecord = IsRecord;
-            var selectors = ComputeSelectors().ToArray();
-            var items = warbend.FetchAsync(selectors).GetAwaiter().GetResult();
+            var items = warbend.FetchAsync(Path).GetAwaiter().GetResult();
             int index = 0;
             foreach (JObject item in items) {
                 var prop = item.Properties().First();
@@ -116,9 +98,8 @@ namespace WarBender {
                 TypeConverter converter = null;
 
                 if (info.Value<string>("path") is string path) {
-                    var selector = info.Value<JValue>("selector").Value;
                     var mutableCount = info.Value<int>("mutableCount");
-                    value = new Mutable(warbend, this, selector, path, typeName, mutableCount);
+                    value = new Mutable(warbend, this, path, typeName, mutableCount);
                 } else {
                     Type type = null;
 
@@ -190,9 +171,7 @@ namespace WarBender {
                     }
                 }
 
-                var selectors = ComputeSelectors().Concat(new[] { selector }).ToArray();
-                var response = warbend.UpdateAsync(selectors, value).GetAwaiter().GetResult();
-
+                var response = warbend.UpdateAsync(Path, selector, value).GetAwaiter().GetResult();
                 if (response is JObject error) {
                     var message = error.Value<string>("error");
                     throw new InvalidOperationException(message);

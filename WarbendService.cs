@@ -192,19 +192,20 @@ namespace WarBender {
                 ["format"] = format,
             });
 
-        public Task<JContainer> FetchAsync(object[] selectors) =>
+        public Task<JContainer> FetchAsync(string path) =>
             RequestAsync("fetch", new JObject {
-                ["selectors"] = new JArray(selectors),
+                ["path"] = path,
             });
 
-        public async Task<JContainer> UpdateAsync(object[] selectors, object value) {
+        public async Task<JContainer> UpdateAsync(string path, object selector, object value) {
             var resp = await RequestAsync("update", new JObject {
-                ["selectors"] = new JArray(selectors),
+                ["path"] = path,
+                ["selector"] = new JValue(selector),
                 ["value"] = new JValue(value),
             }).ConfigureAwait(false);
             var affectedPaths = resp.Select(token => token.Value<string>()).ToArray();
-            foreach (var path in affectedPaths) {
-                responseCache.Remove(path);
+            foreach (var p in affectedPaths) {
+                responseCache.Remove(p);
             }
             return resp;
         }
