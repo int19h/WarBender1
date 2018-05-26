@@ -43,8 +43,8 @@ namespace WarBender {
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
             var fmt = "{0}";
-            var names = GetNames(value);
-            if (names != null) {
+            var names = GetNames(value).ToArray();
+            if (names.Length != 0) {
                 fmt += " ({1})";
             }
             return string.Format(CultureInfo.InvariantCulture, fmt, value, string.Join(", ", names));
