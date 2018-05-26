@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Drawing;
 using System.Drawing.Design;
 using System.Globalization;
 using System.Linq;
@@ -82,6 +83,7 @@ namespace WarBender {
             ["bool8"] = typeof(bool),
             ["bool32"] = typeof(bool),
             ["pstr"] = typeof(string),
+            ["color"] = typeof(Color),
         };
 
         IEnumerable<Child> FetchChildren() {
@@ -121,11 +123,13 @@ namespace WarBender {
                     }
 
                     type = type ?? types[typeName];
-                    value = info.Value<string>("value");
+                    var sval = info.Value<string>("value");
                     if (type == typeof(bool)) {
-                        value = !Equals(value, "0");
+                        value = sval != "0";
+                    } else if (type == typeof(Color)) {
+                        value = Color.FromArgb((int)uint.Parse(sval));
                     } else {
-                        value = Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
+                        value = ((IConvertible)sval).ToType(type, CultureInfo.InvariantCulture);
                     }
                 }
 
@@ -169,6 +173,10 @@ namespace WarBender {
                     if (Equals(value, oldValue)) {
                         return;
                     }
+                }
+
+                if (value is Color color) {
+                    value = (uint)color.ToArgb();
                 }
 
                 var response = warbend.UpdateAsync(Path, selector, value).GetAwaiter().GetResult();
