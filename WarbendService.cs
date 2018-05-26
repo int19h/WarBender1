@@ -22,6 +22,8 @@ namespace WarBender {
         readonly IProgress<string> status;
         readonly IProgress<int> progress;
         readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        readonly Dictionary<string, Dictionary<string, JContainer>> responseCache =
+            new Dictionary<string, Dictionary<string, JContainer>>();
 
         public ConsoleForm Console { get; }
 
@@ -109,7 +111,7 @@ namespace WarBender {
             }
         }
 
-        async Task<JContainer> RequestAsync(string name, JObject args = null) {
+        async Task<JContainer> RequestAsync(string name, JObject args) {
             var process = this.process;
             if (process == null) {
                 throw new WarbendShuttingDownException();
@@ -167,11 +169,22 @@ namespace WarBender {
             }
         }
 
+        async Task<JContainer> CachedRequestAsync(string name, JObject args) {
+            var path = args.Value<string>("path");
+            if (!responseCache.TryGetValue(path, out var pathCache)) {
+                responseCache[path] = pathCache = new Dictionary<string, JContainer>();
+            }
+            if (!pathCache.TryGetValue(name, out var response)) {
+                pathCache[name] = response = await RequestAsync(name, args).ConfigureAwait(false);
+            }
+            return response;
+        }
+
         public Task LoadAsync(string fileName, string format) =>
-            RequestAsync("load", new JObject {
-                ["fileName"] = fileName,
-                ["format"] = format,
-            });
+        RequestAsync("load", new JObject {
+            ["fileName"] = fileName,
+            ["format"] = format,
+        });
 
         public Task SaveAsync(string fileName, string format) =>
             RequestAsync("save", new JObject {
@@ -184,10 +197,21 @@ namespace WarBender {
                 ["selectors"] = new JArray(selectors),
             });
 
-        public Task<JContainer> UpdateAsync(object[] selectors, object value) =>
-            RequestAsync("update", new JObject {
+        public async Task<JContainer> UpdateAsync(object[] selectors, object value) {
+            var resp = await RequestAsync("update", new JObject {
                 ["selectors"] = new JArray(selectors),
                 ["value"] = new JValue(value),
+            }).ConfigureAwait(false);
+            var affectedPaths = resp.Select(token => token.Value<string>()).ToArray();
+            foreach (var path in affectedPaths) {
+                responseCache.Remove(path);
+            }
+            return resp;
+        }
+
+        public Task<JContainer> GetArrayInfoAsync(string path) =>
+            CachedRequestAsync("getArrayInfo", new JObject {
+                ["path"] = path,
             });
     }
 

@@ -122,8 +122,7 @@ namespace WarBender {
                 } else {
                     Type type = null;
 
-                    var nameObj = info.Value<JObject>("enum") ?? info.Value<JObject>("flags");
-                    if (nameObj != null) {
+                    if ((info.Value<JObject>("enum") ?? info.Value<JObject>("flags")) is JObject nameObj) {
                         var baseTypeName = info.Value<string>("baseType");
                         type = types[baseTypeName];
                         var names = nameObj.Properties().ToDictionary(
@@ -134,11 +133,19 @@ namespace WarBender {
                         } else {
                             converter = new EnumTypeConverter(type, names);
                         }
+                    } else if (info.Value<string>("refPath") is string refPath) {
+                        var baseTypeName = info.Value<string>("baseType");
+                        type = types[baseTypeName];
+                        converter = new IdRefTypeConverter(warbend, type, refPath);
                     }
 
                     type = type ?? types[typeName];
                     value = info.Value<string>("value");
-                    value = Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
+                    if (type == typeof(bool)) {
+                        value = !Equals(value, "0");
+                    } else {
+                        value = Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
+                    }
                 }
 
                 yield return new Child(name, value, converter);

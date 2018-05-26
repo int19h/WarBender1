@@ -8,9 +8,10 @@ from warbend import mode
 mode.is_quiet = True
 
 from warbend.data import path, selector, transaction
-from warbend.data.mutable import is_mutable
 from warbend.data.array import is_array
 from warbend.data.enum import Enum, Flags
+from warbend.data.id_ref import IdRef
+from warbend.data.mutable import is_mutable
 from warbend.data.record import is_record
 from warbend.game.mount_and_blade.native import *
 from warbend.serialization import binary, xml
@@ -63,6 +64,10 @@ class RequestHandler(object):
             raise ValueError('Invalid format %r; must be %r or %r' %
                              (s, 'binary', 'xml'))
 
+    def _walk(self, path):
+        env = {'__builtins__': __builtins__, 'game': self._game}
+        return eval(path, env)
+
     def load(self, fileName, format):
         try:
             self._game = load(fileName, self._strtofmt(format))
@@ -104,6 +109,9 @@ class RequestHandler(object):
                     is_flags = isinstance(value, Flags)
                     names = {v: str(k) for k, v in t.names.iteritems()}
                     r['flags' if is_flags else 'enum'] = names
+                elif isinstance(value, IdRef):
+                    r['baseType'] = t.base_type.__name__
+                    r['refPath'] = path(value.target)
             r['type'] = t.__name__
             return r
 
@@ -142,6 +150,14 @@ class RequestHandler(object):
                 return {'error': str(ex)}
             else:
                 return [path(obj) for obj in affected]
+
+    def getArrayInfo(self, path):
+        array = self._walk(path)
+        keys = type(array).keys
+        return {
+            'size': len(array),
+            'keys': {key: i for i, key in keys.iteritems()},
+        }
   
 
 RequestHandler()

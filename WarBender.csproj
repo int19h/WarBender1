@@ -82,6 +82,7 @@
     <Compile Include="ConsoleForm.Designer.cs">
       <DependentUpon>ConsoleForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="IdRef.cs" />
     <Compile Include="Enum.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
