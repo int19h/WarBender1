@@ -18,13 +18,11 @@ namespace WarBender {
             public readonly string Name;
             public readonly object Value;
             public readonly TypeConverter Converter;
-            public readonly Attribute[] Attributes;
 
-            public Child(string name, object value, TypeConverter converter, Attribute[] attributes) {
+            public Child(string name, object value, TypeConverter converter) {
                 Name = name;
                 Value = value;
                 Converter = converter;
-                Attributes = attributes;
             }
         }
 
@@ -119,7 +117,6 @@ namespace WarBender {
                 var typeName = info.Value<string>("type");
                 object value;
                 TypeConverter converter = null;
-                var attrs = new List<Attribute>();
 
                 if (info.Value<string>("path") is string path) {
                     var selector = info.Value<JValue>("selector").Value;
@@ -147,7 +144,7 @@ namespace WarBender {
                     value = Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
                 }
 
-                yield return new Child(name, value, converter, attrs.ToArray());
+                yield return new Child(name, value, converter);
                 namedChildren.Add(name, index);
                 ++index;
             }
@@ -225,28 +222,31 @@ namespace WarBender {
 
     class MutablePropertyDescriptor : PropertyDescriptor {
         readonly Mutable owner;
-        readonly Mutable.Child child;
         readonly object selector;
 
         public MutablePropertyDescriptor(Mutable owner, object selector, Mutable.Child child)
-            : base(child.Name, ComputeAttributes(owner, child.Value).ToArray()) {
+            : base(child.Name, ComputeAttributes(owner, child).ToArray()) {
             this.owner = owner;
             this.selector = selector;
-            this.child = child;
+            Child = child;
             IsReadOnly = child.Value is Mutable || child.Name.StartsWith("(");
         }
 
+        public Mutable.Child Child { get; }
+
         public object Value => owner[selector];
 
-        static IEnumerable<Attribute> ComputeAttributes(Mutable owner, object value) {
-            if (value is string) {
+        static IEnumerable<Attribute> ComputeAttributes(Mutable owner, Mutable.Child child) {
+            if (child.Value is string) {
                 yield return new EditorAttribute(typeof(MultilineStringEditor), typeof(UITypeEditor));
+            } else if (child.Converter is FlagsTypeConverter) {
+                yield return new EditorAttribute(typeof(FlagsEditor), typeof(UITypeEditor));
             }
 
             if (owner.IsArray) {
                 yield return new CategoryAttribute("Items");
             } else { 
-                if (value is Mutable mutable && mutable.IsArray) {
+                if (child.Value is Mutable mutable && mutable.IsArray) {
                     yield return new CategoryAttribute("Collections");
                 } else {
                     yield return new CategoryAttribute("Attributes");
@@ -254,7 +254,7 @@ namespace WarBender {
             }
         }
 
-        public override TypeConverter Converter => child.Converter;
+        public override TypeConverter Converter => Child.Converter;
 
         public override Type ComponentType => typeof(Mutable);
 

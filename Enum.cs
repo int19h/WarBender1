@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing.Design;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
 
 namespace WarBender {
     class EnumTypeConverter : TypeConverter {
-        protected readonly Type baseType;
-        protected readonly Dictionary<string, object> names;
+        public readonly Type BaseType;
+        public readonly Dictionary<string, object> Names;
 
         public EnumTypeConverter(Type baseType, IDictionary<string, object> names) {
-            this.baseType = baseType;
-            this.names = new Dictionary<string, object>(names);
+            BaseType = baseType;
+            Names = new Dictionary<string, object>(names);
         }
 
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) =>
@@ -29,14 +32,14 @@ namespace WarBender {
                 s = s.Substring(0, i);
             }
 
-            return Convert.ChangeType(s, baseType, CultureInfo.InvariantCulture);
+            return Convert.ChangeType(s, BaseType, CultureInfo.InvariantCulture);
         }
 
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
             destinationType == typeof(string);
 
-        protected virtual IEnumerable<string> GetNames(object value) =>
-            names.Where(kv => Equals(kv.Value, value)).Select(kv => kv.Key);
+        public virtual IEnumerable<string> GetNames(object value) =>
+            Names.Where(kv => Equals(kv.Value, value)).Select(kv => kv.Key);
 
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
             var fmt = "{0}";
@@ -52,7 +55,7 @@ namespace WarBender {
         public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) => false;
 
         public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context) =>
-            new StandardValuesCollection(names.Values);
+            new StandardValuesCollection(Names.Values);
     }
 
     class FlagsTypeConverter : EnumTypeConverter {
@@ -60,10 +63,10 @@ namespace WarBender {
             : base(baseType, names) {
         }
 
-        protected override IEnumerable<string> GetNames(dynamic value) {
+        public override IEnumerable<string> GetNames(dynamic value) {
             var flags = new List<string>();
             dynamic x = value & 0;
-            foreach (var kv in names) {
+            foreach (var kv in Names) {
                 dynamic flag = kv.Value;
                 if (flag == 0 && value != 0) {
                     continue;
@@ -79,6 +82,43 @@ namespace WarBender {
             }
 
             return flags;
+        }
+    }
+
+    class FlagsEditor : UITypeEditor {
+        public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context) =>
+            UITypeEditorEditStyle.DropDown;
+
+        public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, dynamic value) {
+            var converter = (EnumTypeConverter)context.PropertyDescriptor.Converter;
+
+            var listBox = new CheckedListBox {
+                CheckOnClick = true,
+            };
+            var flags = new List<dynamic>();
+            foreach (var kv in converter.Names) {
+                dynamic flag = kv.Value;
+                if (flag == 0) {
+                    continue;
+                }
+
+                var text = converter.ConvertToString(context, CultureInfo.InvariantCulture, flag);
+                var isChecked = (value & flag) == flag;
+                listBox.Items.Add(text, isChecked);
+                flags.Add(flag);
+            }
+
+            listBox.ItemCheck += (sender, e) => {
+                if (e.NewValue == CheckState.Checked) {
+                    value |= flags[e.Index];
+                } else {
+                    value &= ~flags[e.Index];
+                }
+            };
+
+            var service = ((IWindowsFormsEditorService)provider.GetService(typeof(IWindowsFormsEditorService)));
+            service.DropDownControl(listBox);
+            return value;
         }
     }
 }
