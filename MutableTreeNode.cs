@@ -57,10 +57,10 @@ namespace WarBender {
             TreeNode[] childNodes;
             try {
                 childNodes =
-                    (from kv in owner.Mutable.Children
-                     let child = kv.Value as Mutable
-                     where child != null
-                     select new MutableTreeNode(treeView, kv.Key, child)
+                    (from child in owner.Mutable.Children
+                     let mut = child.Value as Mutable
+                     where mut != null
+                     select new MutableTreeNode(treeView, child.Name, mut)
                     ).ToArray();
             } catch (WarbendShuttingDownException) {
                 return;

@@ -14,6 +14,20 @@ namespace WarBender {
     [TypeDescriptionProvider(typeof(MutableTypeDescriptionProvider))]
     [TypeConverter(typeof(MutableTypeConverter))]
     class Mutable {
+        public struct Child {
+            public readonly string Name;
+            public readonly object Value;
+            public readonly TypeConverter Converter;
+            public readonly Attribute[] Attributes;
+
+            public Child(string name, object value, TypeConverter converter, Attribute[] attributes) {
+                Name = name;
+                Value = value;
+                Converter = converter;
+                Attributes = attributes;
+            }
+        }
+
         static readonly Dictionary<string, WeakReference> mutables = new Dictionary<string, WeakReference>();
 
         readonly WarbendService warbend;
@@ -24,7 +38,7 @@ namespace WarBender {
 
         public object Selector { get; }
 
-        Lazy<KeyValuePair<string, object>[]> childrenLazy;
+        Lazy<Child[]> childrenLazy;
 
         // Values are indices into the above array.
         readonly Dictionary<string, int> namedChildren = new Dictionary<string, int>();
@@ -77,38 +91,70 @@ namespace WarBender {
             }
         }
 
-        IEnumerable<KeyValuePair<string, object>> FetchChildren() {
+        readonly Dictionary<string, Type> types = new Dictionary<string, Type>() {
+            ["int8"] = typeof(sbyte),
+            ["int16"] = typeof(short),
+            ["int32"] = typeof(int),
+            ["int64"] = typeof(long),
+            ["uint8"] = typeof(byte),
+            ["uint16"] = typeof(ushort),
+            ["uint32"] = typeof(uint),
+            ["uint64"] = typeof(ulong),
+            ["float32"] = typeof(float),
+            ["bool8"] = typeof(bool),
+            ["bool32"] = typeof(bool),
+            ["pstr"] = typeof(string),
+        };
+
+        IEnumerable<Child> FetchChildren() {
             var isRecord = IsRecord;
             var selectors = ComputeSelectors().ToArray();
             var items = warbend.FetchAsync(selectors).GetAwaiter().GetResult();
             int index = 0;
             foreach (JObject item in items) {
                 var prop = item.Properties().First();
+                var name = prop.Name;
 
+                var info = (JObject)prop.Value;
+                var typeName = info.Value<string>("type");
                 object value;
-                switch (prop.Value) {
-                    case JObject obj:
-                        var selector = obj.Value<JValue>("selector").Value;
-                        var path = obj.Value<string>("path");
-                        var typeName = obj.Value<string>("type");
-                        var mutableCount = obj.Value<int>("mutableCount");
-                        value = new Mutable(warbend, this, selector, path, typeName, mutableCount);
-                        break;
-                    case JValue val:
-                        value = val.Value;
-                        break;
-                    default:
-                        throw new InvalidDataException();
+                TypeConverter converter = null;
+                var attrs = new List<Attribute>();
+
+                if (info.Value<string>("path") is string path) {
+                    var selector = info.Value<JValue>("selector").Value;
+                    var mutableCount = info.Value<int>("mutableCount");
+                    value = new Mutable(warbend, this, selector, path, typeName, mutableCount);
+                } else {
+                    Type type = null;
+
+                    var nameObj = info.Value<JObject>("enum") ?? info.Value<JObject>("flags");
+                    if (nameObj != null) {
+                        var baseTypeName = info.Value<string>("baseType");
+                        type = types[baseTypeName];
+                        var names = nameObj.Properties().ToDictionary(
+                            p => p.Name,
+                            p => Convert.ChangeType(p.Value.Value<string>(), type, CultureInfo.InvariantCulture));
+                        if (info.ContainsKey("flags")) {
+                            converter = new FlagsTypeConverter(type, names);
+                        } else {
+                            converter = new EnumTypeConverter(type, names);
+                        }
+                    }
+
+                    type = type ?? types[typeName];
+                    value = info.Value<string>("value");
+                    value = Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
                 }
 
-                yield return new KeyValuePair<string, object>(prop.Name, value);
-                namedChildren.Add(prop.Name, index);
+                yield return new Child(name, value, converter, attrs.ToArray());
+                namedChildren.Add(name, index);
                 ++index;
             }
         }
 
         public void Invalidate() {
-            childrenLazy = new Lazy<KeyValuePair<string, object>[]>(() => FetchChildren().ToArray());
+            childrenLazy = new Lazy<Child[]>(() => FetchChildren().ToArray());
             namedChildren.Clear();
             Invalid?.Invoke(this, EventArgs.Empty);
         }
@@ -122,7 +168,7 @@ namespace WarBender {
             return TypeName == other.TypeName;
         }
 
-        public KeyValuePair<string, object>[] Children => childrenLazy.Value;
+        public Child[] Children => childrenLazy.Value;
 
         public object this[object selector] {
             get {
@@ -137,7 +183,7 @@ namespace WarBender {
             }
             set {
                 if (childrenLazy.IsValueCreated) {
-                    var oldValue = Children.FirstOrDefault(kv => Equals(kv.Key, selector)).Value;
+                    var oldValue = Children.FirstOrDefault(child => Equals(child.Name, selector)).Value;
                     if (Equals(value, oldValue)) {
                         return;
                     }
@@ -179,13 +225,15 @@ namespace WarBender {
 
     class MutablePropertyDescriptor : PropertyDescriptor {
         readonly Mutable owner;
+        readonly Mutable.Child child;
         readonly object selector;
 
-        public MutablePropertyDescriptor(Mutable owner, object selector, string name, object value)
-            : base(name, ComputeAttributes(owner, value).ToArray()) {
+        public MutablePropertyDescriptor(Mutable owner, object selector, Mutable.Child child)
+            : base(child.Name, ComputeAttributes(owner, child.Value).ToArray()) {
             this.owner = owner;
             this.selector = selector;
-            IsReadOnly = value is Mutable || name.StartsWith("(");
+            this.child = child;
+            IsReadOnly = child.Value is Mutable || child.Name.StartsWith("(");
         }
 
         public object Value => owner[selector];
@@ -205,6 +253,8 @@ namespace WarBender {
                 }
             }
         }
+
+        public override TypeConverter Converter => child.Converter;
 
         public override Type ComponentType => typeof(Mutable);
 
@@ -279,8 +329,8 @@ namespace WarBender {
         IEnumerable<PropertyDescriptor> CreateProperties() {
             object Selector(int index, string name) =>
                 mutable.IsArray ? (object)index : name;
-            return mutable.Children.Select((kv, i) =>
-                new MutablePropertyDescriptor(mutable, Selector(i, kv.Key), kv.Key, kv.Value));
+            return mutable.Children.Select((child, i) =>
+                new MutablePropertyDescriptor(mutable, Selector(i, child.Name), child));
         }
 
         public PropertyDescriptorCollection GetProperties(Attribute[] attributes) => GetProperties();

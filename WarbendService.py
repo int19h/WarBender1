@@ -10,6 +10,7 @@ mode.is_quiet = True
 from warbend.data import path, selector, transaction
 from warbend.data.mutable import is_mutable
 from warbend.data.array import is_array
+from warbend.data.enum import Enum, Flags
 from warbend.data.record import is_record
 from warbend.game.mount_and_blade.native import *
 from warbend.serialization import binary, xml
@@ -89,15 +90,22 @@ class RequestHandler(object):
 
         def propvalue(value):
             t = type(value)
-            if not is_mutable(value):
-                return value
-            return {
-                'selector': selector(value),
-                'path': path(value),
-                'type': t.__name__,
-                'totalCount': len(value),
-                'mutableCount': sum(is_mutable(child) for child in value)
-            }
+            if is_mutable(value):
+                r = {
+                    'selector': selector(value),
+                    'path': path(value),
+                    'totalCount': len(value),
+                    'mutableCount': sum(is_mutable(child) for child in value),
+                }
+            else:
+                r = {'value': str(value)}
+                if isinstance(value, Enum):
+                    r['baseType'] = t.base_type.__name__
+                    is_flags = isinstance(value, Flags)
+                    names = {v: str(k) for k, v in t.names.iteritems()}
+                    r['flags' if is_flags else 'enum'] = names
+            r['type'] = t.__name__
+            return r
 
         t = type(obj)
         if is_record(obj):
