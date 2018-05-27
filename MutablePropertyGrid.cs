@@ -119,6 +119,9 @@ namespace WarBender {
                         case MouseButtons.Middle:
                             Selection.Remove(node);
                             break;
+                        case MouseButtons.Right:
+                            treeView.SelectedNode = node;
+                            break;
                         case MouseButtons.Left:
                             if (DoDragDrop(node, DragDropEffects.Copy | DragDropEffects.Move) == DragDropEffects.Move) {
                                 Selection.Remove(node);
