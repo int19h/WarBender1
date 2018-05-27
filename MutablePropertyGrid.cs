@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Collections.Specialized;
 using System.Collections.ObjectModel;
+using WarBender.Properties;
 
 namespace WarBender {
     public partial class MutablePropertyGrid : UserControl, IDisposable {
@@ -15,6 +16,7 @@ namespace WarBender {
         public MutablePropertyGrid() {
             InitializeComponent();
             Mutable.Invalidated += Mutable_Invalidated;
+            Settings.Default.PropertyChanged += Settings_PropertyChanged;
 
             toolStripMultiItems = toolStrip.Items.Cast<ToolStripItem>().ToArray();
             var propertyGridToolStrip = propertyGrid.Controls.OfType<ToolStrip>().Single();
@@ -26,6 +28,7 @@ namespace WarBender {
         void IDisposable.Dispose() {
             Selection = null;
             Mutable.Invalidated -= Mutable_Invalidated;
+            Settings.Default.PropertyChanged -= Settings_PropertyChanged;
 
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -103,9 +106,11 @@ namespace WarBender {
             foreach (var node in selection) {
                 var mutable = node.Mutable;
                 var treeView = node.TreeView;
-                var button = new ToolStripButton(mutable.Path, treeView.ImageList.Images[node.ImageKey]);
+
+                var text = (Settings.Default.UseRawIds ? null : mutable.Label) ?? mutable.Name ?? mutable.Path;
+                var button = new ToolStripButton(text, treeView.ImageList.Images[node.ImageKey]);
                 button.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
-                button.ToolTipText = node.ToolTipText;
+                button.ToolTipText = mutable.Path;
                 button.Click += delegate {
                     treeView.SelectedNode = node;
                 };
@@ -182,6 +187,12 @@ namespace WarBender {
                     propertyGrid.Refresh();
                 }
             });
+        }
+
+        void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+            if (e.PropertyName == nameof(Settings.Default.UseRawIds)) {
+                UpdateToolStrip();
+            }
         }
     }
 }
