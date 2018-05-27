@@ -13,11 +13,13 @@ namespace WarBender {
     [TypeConverter(typeof(MutableTypeConverter))]
     class Mutable {
         public struct Child {
+            public readonly int Index;
             public readonly string Name;
             public readonly object Value;
             public readonly TypeConverter Converter;
 
-            public Child(string name, object value, TypeConverter converter) {
+            public Child(int index, string name, object value, TypeConverter converter) {
+                Index = index;
                 Name = name;
                 Value = value;
                 Converter = converter;
@@ -29,6 +31,12 @@ namespace WarBender {
         readonly WarbendService warbend;
 
         public Mutable Parent { get; }
+
+        public int Index { get; }
+
+        public string Name { get; }
+
+        public string Label { get; }
 
         public string Path { get; }
 
@@ -45,20 +53,23 @@ namespace WarBender {
 
         public bool IsRecord => !IsArray;
 
-        private Mutable(WarbendService warbend, Mutable parent, string path, string typeName, int mutableCount) {
+        private Mutable(WarbendService warbend, Mutable parent, int index, string name, string path, string typeName, string label, int mutableCount) {
             this.warbend = warbend;
             Parent = parent;
+            Index = index;
+            Name = name;
             Path = path;
             TypeName = typeName;
-            IsArray = typeName?.Contains("array(") == true;
+            Label = label;
             MutableCount = mutableCount;
+            IsArray = typeName?.Contains("array(") == true;
 
             mutables[path] = new WeakReference(this);
             Invalidate();
         }
 
-        public Mutable(WarbendService warbend, string typeName, int mutableCount = 1)
-            : this(warbend, null, "game", typeName, mutableCount) {
+        public Mutable(WarbendService warbend)
+            : this(warbend, null, 0, "game", "game", "game", null, 1) {
         }
 
         public event EventHandler Invalid;
@@ -92,7 +103,11 @@ namespace WarBender {
             int index = 0;
             foreach (JObject item in items) {
                 var prop = item.Properties().First();
+
                 var name = prop.Name;
+                if (name == "") {
+                    name = null;
+                }
 
                 var info = (JObject)prop.Value;
                 var typeName = info.Value<string>("type");
@@ -100,8 +115,9 @@ namespace WarBender {
                 TypeConverter converter = null;
 
                 if (info.Value<string>("path") is string path) {
+                    var label = info.Value<string>("name");
                     var mutableCount = info.Value<int>("mutableCount");
-                    value = new Mutable(warbend, this, path, typeName, mutableCount);
+                    value = new Mutable(warbend, this, index, name, path, typeName, label, mutableCount);
                 } else {
                     Type type = null;
 
@@ -133,8 +149,10 @@ namespace WarBender {
                     }
                 }
 
-                yield return new Child(name, value, converter);
-                namedChildren.Add(name, index);
+                yield return new Child(index, name, value, converter);
+                if (name != null) {
+                    namedChildren.Add(name, index);
+                }
                 ++index;
             }
         }
@@ -197,6 +215,16 @@ namespace WarBender {
                 Invalidated?.Invoke(this, affectedSet);
             }
         }
+
+        public string GetIndexString(int index) {
+            if (!IsArray) {
+                return "";
+            }
+
+            int maxLen = (Children.Length - 1).ToString().Length;
+            var fmt = "[{0:D" + maxLen + "}]\u2004";
+            return string.Format(fmt, index);
+        }
     }
 
     class MutableTypeConverter : ExpandableObjectConverter {
@@ -213,19 +241,19 @@ namespace WarBender {
 
     class MutablePropertyDescriptor : PropertyDescriptor {
         readonly Mutable owner;
-        readonly object selector;
+        readonly Mutable.Child child;
 
-        public MutablePropertyDescriptor(Mutable owner, object selector, Mutable.Child child)
-            : base(child.Name, ComputeAttributes(owner, child).ToArray()) {
+        public MutablePropertyDescriptor(Mutable owner, Mutable.Child child)
+            : base(ComputeName(owner, child), ComputeAttributes(owner, child).ToArray()) {
             this.owner = owner;
-            this.selector = selector;
-            Child = child;
-            IsReadOnly = child.Value is Mutable || child.Name.StartsWith("(");
+            this.child = child;
+            IsReadOnly = child.Value is Mutable;
         }
 
-        public Mutable.Child Child { get; }
+        public object Value => owner[child.Index];
 
-        public object Value => owner[selector];
+        static string ComputeName(Mutable owner, Mutable.Child child) =>
+            owner.GetIndexString(child.Index) + child.Name;
 
         static IEnumerable<Attribute> ComputeAttributes(Mutable owner, Mutable.Child child) {
             if (child.Value is string) {
@@ -240,12 +268,12 @@ namespace WarBender {
                 if (child.Value is Mutable mutable && mutable.IsArray) {
                     yield return new CategoryAttribute("Collections");
                 } else {
-                    yield return new CategoryAttribute("Attributes");
+                    yield return new CategoryAttribute("Properties");
                 }
             }
         }
 
-        public override TypeConverter Converter => Child.Converter;
+        public override TypeConverter Converter => child.Converter;
 
         public override Type ComponentType => typeof(Mutable);
 
@@ -275,7 +303,7 @@ namespace WarBender {
 
         public override void SetValue(object component, object value) {
             EnsureOwner(component);
-            owner[selector] = value;
+            owner[child.Index] = value;
         }
 
         public override void AddValueChanged(object component, EventHandler handler) {
@@ -323,12 +351,8 @@ namespace WarBender {
 
         public PropertyDescriptorCollection GetProperties() => properties.Value;
 
-        IEnumerable<PropertyDescriptor> CreateProperties() {
-            object Selector(int index, string name) =>
-                mutable.IsArray ? (object)index : name;
-            return mutable.Children.Select((child, i) =>
-                new MutablePropertyDescriptor(mutable, Selector(i, child.Name), child));
-        }
+        IEnumerable<PropertyDescriptor> CreateProperties() =>
+            mutable.Children.Select(child => new MutablePropertyDescriptor(mutable, child));
 
         public PropertyDescriptorCollection GetProperties(Attribute[] attributes) => GetProperties();
 

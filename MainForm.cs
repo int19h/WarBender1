@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WarBender.Properties;
 
 namespace WarBender {
     public partial class MainForm : Form {
@@ -94,8 +96,8 @@ namespace WarBender {
                 }
                 loaded = true;
 
-                var game = new Mutable(warbend, "game", 1);
-                var rootNode = new MutableTreeNode(treeView, "game", game);
+                var game = new Mutable(warbend);
+                var rootNode = new MutableTreeNode(treeView, game);
                 treeView.Nodes.Add(rootNode);
                 treeView.EndUpdate();
                 rootNode.Expand();
@@ -308,6 +310,18 @@ namespace WarBender {
             try {
                 ar = BeginInvoke(update);
             } catch (InvalidOperationException) {
+            }
+        }
+
+        void contextMenuTree_Opening(object sender, CancelEventArgs e) {
+            menuItemShowRawIds.Checked = Settings.Default.UseRawIds;
+        }
+
+        void menuItemShowRawIds_CheckedChanged(object sender, EventArgs e) {
+            if (Settings.Default.UseRawIds != menuItemShowRawIds.Checked) {
+                treeView.BeginUpdate();
+                Settings.Default.UseRawIds = menuItemShowRawIds.Checked;
+                treeView.EndUpdate();
             }
         }
     }

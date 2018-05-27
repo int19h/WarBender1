@@ -17,5 +17,8 @@
     <Setting Name="ConsoleForm_ClientSize" Type="System.Drawing.Size" Scope="User">
       <Value Profile="(Default)">499, 274</Value>
     </Setting>
+    <Setting Name="UseRawIds" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

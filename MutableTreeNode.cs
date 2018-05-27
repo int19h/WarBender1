@@ -1,18 +1,14 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using WarBender.Properties;
 
 namespace WarBender {
-    enum SyntheticNodeTag {
-        LoadingHidden,
-        LoadingVisible,
-    }
-
     class MutableTreeNode : TreeNode {
         public Mutable Mutable { get; }
 
-        public MutableTreeNode(TreeView treeView, string name, Mutable mutable)
-            : base(name) {
+        public MutableTreeNode(TreeView treeView, Mutable mutable) {
             Mutable = mutable;
 
             ToolTipText = mutable.TypeName;
@@ -22,6 +18,30 @@ namespace WarBender {
 
             if (mutable.MutableCount > 0) {
                 Nodes.Add(new LoadingTreeNode(treeView, this));
+            }
+
+            ComputeText();
+            Settings.Default.PropertyChanged += Settings_PropertyChanged;
+        }
+
+        void Settings_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+            if (e.PropertyName == nameof(Settings.Default.UseRawIds)) {
+                ComputeText();
+            }
+        }
+
+        void ComputeText() {
+            var index = Mutable.Parent?.GetIndexString(Mutable.Index);
+            if (Settings.Default.UseRawIds) {
+                Text = index + Mutable.Name;
+                if (Mutable.Label != null) {
+                    ToolTipText = Mutable.Label;
+                }
+            } else {
+                Text = index + (Mutable.Label ?? Mutable.Name);
+                if (Mutable.Label != null) {
+                    ToolTipText = Mutable.Name;
+                }
             }
         }
     }
@@ -56,7 +76,7 @@ namespace WarBender {
                     (from child in owner.Mutable.Children
                      let mut = child.Value as Mutable
                      where mut != null
-                     select new MutableTreeNode(treeView, child.Name, mut)
+                     select new MutableTreeNode(treeView, mut)
                     ).ToArray();
             } catch (WarbendShuttingDownException) {
                 return;

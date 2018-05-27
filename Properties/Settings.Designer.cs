@@ -82,5 +82,17 @@ namespace WarBender.Properties {
                 this["ConsoleForm_ClientSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool UseRawIds {
+            get {
+                return ((bool)(this["UseRawIds"]));
+            }
+            set {
+                this["UseRawIds"] = value;
+            }
+        }
     }
 }

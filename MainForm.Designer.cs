@@ -44,12 +44,15 @@
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.contextMenuTree = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.menuItemShowRawIds = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
             this.splitContainer.SuspendLayout();
+            this.contextMenuTree.SuspendLayout();
             this.SuspendLayout();
             // 
             // statusStrip
@@ -59,11 +62,11 @@
             this.buttonMulti,
             this.statusLabel,
             this.progressBar});
-            this.statusStrip.Location = new System.Drawing.Point(0, 603);
+            this.statusStrip.Location = new System.Drawing.Point(0, 485);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 19, 0);
             this.statusStrip.ShowItemToolTips = true;
-            this.statusStrip.Size = new System.Drawing.Size(979, 26);
+            this.statusStrip.Size = new System.Drawing.Size(734, 26);
             this.statusStrip.TabIndex = 0;
             this.statusStrip.ClientSizeChanged += new System.EventHandler(this.statusStrip_ClientSizeChanged);
             // 
@@ -108,7 +111,7 @@
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
             this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.toolStrip.Size = new System.Drawing.Size(979, 27);
+            this.toolStrip.Size = new System.Drawing.Size(734, 27);
             this.toolStrip.TabIndex = 1;
             // 
             // buttonLoad
@@ -184,7 +187,7 @@
             this.splitContainer.DataBindings.Add(new System.Windows.Forms.Binding("SplitterDistance", global::WarBender.Properties.Settings.Default, "MainForm_SplitterDistance", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer.Location = new System.Drawing.Point(0, 27);
-            this.splitContainer.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer.Margin = new System.Windows.Forms.Padding(4);
             this.splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
@@ -196,7 +199,7 @@
             // 
             this.splitContainer.Panel2.Controls.Add(this.propertyGrid);
             this.splitContainer.Panel2MinSize = 150;
-            this.splitContainer.Size = new System.Drawing.Size(979, 576);
+            this.splitContainer.Size = new System.Drawing.Size(734, 458);
             this.splitContainer.SplitterDistance = global::WarBender.Properties.Settings.Default.MainForm_SplitterDistance;
             this.splitContainer.SplitterWidth = 5;
             this.splitContainer.TabIndex = 2;
@@ -204,18 +207,19 @@
             // treeView
             // 
             this.treeView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.treeView.ContextMenuStrip = this.contextMenuTree;
             this.treeView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeView.FullRowSelect = true;
             this.treeView.HideSelection = false;
             this.treeView.ImageIndex = 0;
             this.treeView.ImageList = this.imageList;
             this.treeView.Location = new System.Drawing.Point(0, 0);
-            this.treeView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.treeView.Margin = new System.Windows.Forms.Padding(4);
             this.treeView.Name = "treeView";
             this.treeView.SelectedImageIndex = 0;
             this.treeView.ShowNodeToolTips = true;
             this.treeView.ShowRootLines = false;
-            this.treeView.Size = new System.Drawing.Size(393, 576);
+            this.treeView.Size = new System.Drawing.Size(295, 458);
             this.treeView.TabIndex = 0;
             this.treeView.BeforeCheck += new System.Windows.Forms.TreeViewCancelEventHandler(this.treeView_BeforeCheck);
             this.treeView.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.treeView_AfterCheck);
@@ -254,11 +258,11 @@
             this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid.Location = new System.Drawing.Point(0, 0);
             this.propertyGrid.MainForm = null;
-            this.propertyGrid.Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            this.propertyGrid.Margin = new System.Windows.Forms.Padding(5);
             this.propertyGrid.MultiSelect = false;
             this.propertyGrid.Name = "propertyGrid";
             this.propertyGrid.ShowMultiSelectTip = true;
-            this.propertyGrid.Size = new System.Drawing.Size(581, 576);
+            this.propertyGrid.Size = new System.Drawing.Size(434, 458);
             this.propertyGrid.TabIndex = 0;
             // 
             // openFileDialog
@@ -270,6 +274,23 @@
             // 
             this.saveFileDialog.DefaultExt = "sav";
             this.saveFileDialog.Filter = "Mount & Blade saved games (sg??.sav)|sg??.sav|All files (*.*)|*.*";
+            // 
+            // contextMenuTree
+            // 
+            this.contextMenuTree.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.contextMenuTree.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuItemShowRawIds});
+            this.contextMenuTree.Name = "contextMenuTree";
+            this.contextMenuTree.Size = new System.Drawing.Size(211, 56);
+            this.contextMenuTree.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuTree_Opening);
+            // 
+            // menuItemShowRawIds
+            // 
+            this.menuItemShowRawIds.CheckOnClick = true;
+            this.menuItemShowRawIds.Name = "menuItemShowRawIds";
+            this.menuItemShowRawIds.Size = new System.Drawing.Size(210, 24);
+            this.menuItemShowRawIds.Text = "Show raw IDs";
+            this.menuItemShowRawIds.CheckedChanged += new System.EventHandler(this.menuItemShowRawIds_CheckedChanged);
             // 
             // MainForm
             // 
@@ -283,7 +304,7 @@
             this.DataBindings.Add(new System.Windows.Forms.Binding("ClientSize", global::WarBender.Properties.Settings.Default, "MainForm_Size", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Location = global::WarBender.Properties.Settings.Default.MainForm_Location;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.MinimumSize = new System.Drawing.Size(527, 358);
             this.Name = "MainForm";
             this.Text = "WarBender";
@@ -296,6 +317,7 @@
             this.splitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
             this.splitContainer.ResumeLayout(false);
+            this.contextMenuTree.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -322,6 +344,8 @@
         private System.Windows.Forms.ToolStripSplitButton buttonSave;
         private System.Windows.Forms.ToolStripMenuItem buttonSaveBinary;
         private System.Windows.Forms.ToolStripMenuItem buttonSaveXml;
+        private System.Windows.Forms.ContextMenuStrip contextMenuTree;
+        private System.Windows.Forms.ToolStripMenuItem menuItemShowRawIds;
     }
 }
 

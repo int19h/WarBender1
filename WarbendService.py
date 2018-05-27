@@ -90,6 +90,7 @@ class RequestHandler(object):
         if is_mutable(value):
             r = {
                 'path': path_of(value),
+                'name': getattr(value, '_name', None),
                 'totalCount': len(value),
                 'mutableCount': sum(is_mutable(child) for child in value),
             }
@@ -116,10 +117,7 @@ class RequestHandler(object):
                     if not fname.startswith('_')]
         elif is_array(obj):
             keys = t.keys
-            fmt = u'[%%0%dd]\u2002' % len(str(len(obj) - 1))
-            def propname(i):
-                return (fmt % i) + keys.get(i, '')
-            return [{propname(i): propvalue(item)}
+            return [{keys.get(i, ''): propvalue(item)}
                     for i, item in enumerate(obj)]
         else:
             return obj
