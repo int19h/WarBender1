@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using WarBender.Properties;
 
 namespace WarBender {
     class IdRefTypeConverter : TypeConverter {
@@ -36,7 +37,7 @@ namespace WarBender {
                 s = s.Substring(0, i);
             }
 
-            return Convert.ChangeType(s, BaseType, CultureInfo.InvariantCulture);
+            return Convert.ChangeType(s, BaseType, culture);
         }
 
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
@@ -50,16 +51,24 @@ namespace WarBender {
             var index = ((IConvertible)value).ToInt32(culture);
             var resp = warbend.GetArrayInfoAsync(Path).GetAwaiter().GetResult();
             var keys = resp.Value<JObject>("keys");
-            var fmt = "{0}";
-            string key = null;
-            foreach (var kv in keys) {
-                if (kv.Value.Value<int>() == index) {
-                    fmt += " ({1})";
-                    key = kv.Key;
-                    break;
+            var labels = resp.Value<JArray>("names");
+
+            string text = null;
+            if (!Settings.Default.UseRawIds) {
+                if (index >= 0 && index < labels.Count) {
+                    text = labels.Value<string>(index);
                 }
             }
-            return string.Format(CultureInfo.InvariantCulture, fmt, value, key);
+            if (text == null) {
+                foreach (var kv in keys) {
+                    if (kv.Value.Value<int>() == index) {
+                        text = kv.Key;
+                        break;
+                    }
+                }
+            }
+            var fmt = "{0}" + (text == null ? "" : " ({1})");
+            return string.Format(culture, fmt, value, text);
         }
 
         public override bool GetStandardValuesSupported(ITypeDescriptorContext context) => true;

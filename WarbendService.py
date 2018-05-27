@@ -141,6 +141,7 @@ class RequestHandler(object):
         return {
             'size': len(array),
             'keys': {key: i for i, key in keys.iteritems()},
+            'names': [item._name for item in array],
         }
   
 

@@ -191,6 +191,7 @@ namespace WarBender {
 
         void Settings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
             if (e.PropertyName == nameof(Settings.Default.UseRawIds)) {
+                propertyGrid.Refresh();
                 UpdateToolStrip();
             }
         }

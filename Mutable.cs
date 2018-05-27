@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Design;
 using System.Globalization;
@@ -174,23 +175,28 @@ namespace WarBender {
 
         public Child[] Children => childrenLazy.Value;
 
-        public object this[object selector] {
-            get {
-                switch (selector) {
-                    case int index:
-                        return Children[index].Value;
-                    case string name:
-                        return Children[namedChildren[name]].Value;
-                    default:
-                        throw new ArgumentException();
-                }
+        public Child GetChild(object selector) {
+            switch (selector) {
+                case int index:
+                    return Children[index];
+                case string name:
+                    return Children[namedChildren[name]];
+                default:
+                    throw new ArgumentException();
             }
+        }
+
+        public object this[object selector] {
+            get => GetChild(selector).Value;
             set {
-                if (childrenLazy.IsValueCreated) {
-                    var oldValue = Children.FirstOrDefault(child => Equals(child.Name, selector)).Value;
-                    if (Equals(value, oldValue)) {
-                        return;
-                    }
+                var child = GetChild(selector);
+                if (Equals(child.Value, value)) {
+                    return;
+                }
+
+                if (IsRecord) {
+                    selector = child.Name;
+                    Debug.Assert(selector != null);
                 }
 
                 if (value is Color color) {
