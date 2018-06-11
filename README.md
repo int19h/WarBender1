@@ -1,3 +1,3 @@
-# WarBender: a Mount & Blade: Warband save game editor
+This project is retired. Please use the new and better version here:
 
-![Screenshot](https://user-images.githubusercontent.com/1175142/40268587-4ffe4ebc-5b25-11e8-8513-9502c0ce31c3.png)
+https://github.com/int19h/WarBender
